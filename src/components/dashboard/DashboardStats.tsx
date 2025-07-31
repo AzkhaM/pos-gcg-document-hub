@@ -132,8 +132,8 @@ const DashboardStats = () => {
       slider.moveToIdx(0, true);
     },
     updated(slider) {
-      // Force recalculation on window resize or sidebar toggle
-      slider.update();
+      // Avoid infinite recursion - don't call update() in updated callback
+      // The slider will handle updates automatically
     }
   }, [autoplay()]);
 

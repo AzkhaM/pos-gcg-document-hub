@@ -16,6 +16,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/dashboard/Dashboard';
 import ListGCG from './pages/ListGCG';
 import DocumentManagement from './pages/DocumentManagement';
+import PenilaianGCG from './pages/PenilaianGCG';
 import AdminDocumentManagement from './pages/admin/DocumentManagement';
 import StrukturPerusahaan from './pages/admin/StrukturPerusahaan';
 import ChecklistGCG from './pages/admin/ChecklistGCG';
@@ -83,12 +84,7 @@ const AppRoutes = () => {
         path="/penilaian-gcg" 
         element={
           <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Penilaian GCG</h1>
-                <p className="text-gray-600">Halaman penilaian GCG akan dikembangkan selanjutnya</p>
-              </div>
-            </div>
+            <PenilaianGCG />
           </ProtectedRoute>
         } 
       />
