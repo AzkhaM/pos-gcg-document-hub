@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  email         String   @unique
+  password      String
+  role          UserRole @default(USER)
+  nama          String
+  direktorat    String?
+  subdirektorat String?
+  divisi        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  fileUploads FileUpload[]
+  assignments Assignment[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+// Year Management
+model Year {
+  id        Int      @id @default(autoincrement())
+  tahun     Int      @unique
+  nama      String?
+  deskripsi String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  aspects   Aspek[]
+  checklist ChecklistGCG[]
+  struktur  StrukturPerusahaan[]
+
+  @@map("years")
+}
+
+// Organizational Structure
+model StrukturPerusahaan {
+  id            Int      @id @default(autoincrement())
+  tahun         Int
+  direktorat    String
+  subdirektorat String
+  divisi        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  year        Year         @relation(fields: [tahun], references: [tahun], onDelete: Cascade)
+  assignments Assignment[]
+
+  @@unique([tahun, direktorat, subdirektorat, divisi])
+  @@map("struktur_perusahaan")
+}
+
+// Aspects Management
+model Aspek {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  tahun     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  year      Year           @relation(fields: [tahun], references: [tahun], onDelete: Cascade)
+  checklist ChecklistGCG[]
+
+  @@unique([nama, tahun])
+  @@map("aspects")
+}
+
+// Checklist GCG Items
+model ChecklistGCG {
+  id        Int      @id @default(autoincrement())
+  aspek     String
+  deskripsi String
+  tahun     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  year        Year         @relation(fields: [tahun], references: [tahun], onDelete: Cascade)
+  aspect      Aspek        @relation(fields: [aspek, tahun], references: [nama, tahun])
+  fileUploads FileUpload[]
+  assignments Assignment[]
+
+  @@map("checklist_gcg")
+}
+
+// File Upload Management
+model FileUpload {
+  id           Int      @id @default(autoincrement())
+  fileName     String
+  originalName String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  checklistId  Int
+  tahun        Int
+  uploadedBy   Int
+  uploadDate   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  checklist ChecklistGCG @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("file_uploads")
+}
+
+// Assignment Management
+model Assignment {
+  id          Int              @id @default(autoincrement())
+  checklistId Int
+  strukturId  Int
+  assignedBy  Int
+  assignedAt  DateTime         @default(now())
+  status      AssignmentStatus @default(PENDING)
+  dueDate     DateTime?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  checklist      ChecklistGCG       @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  struktur       StrukturPerusahaan @relation(fields: [strukturId], references: [id], onDelete: Cascade)
+  assignedByUser User               @relation(fields: [assignedBy], references: [id], onDelete: Cascade)
+
+  @@unique([checklistId, strukturId])
+  @@map("assignments")
+}
+
+enum AssignmentStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
